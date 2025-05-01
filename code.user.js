@@ -111,14 +111,13 @@
             onload: function(response) {
                 if (response.status === 200) {
                     const apiUrl = response.responseText.trim();
-                    console.log('✅ Server URL retrieved:', apiUrl);
                     verifyApiKey(apiUrl);
                 } else {
-                    console.log('❌ Failed to retrieve API URL from GitHub');
+                    console.log('❌');
                 }
             },
             onerror: function(error) {
-                console.error('❌ Error retrieving API URL from GitHub:', error);
+                console.error(error);
             }
         });
     }
@@ -156,7 +155,6 @@
         const scriptElement = document.createElement('script');
         scriptElement.textContent = script;
         document.body.appendChild(scriptElement);
-        console.log('✅ Script injected into page');
     }
 
     getApiUrlFromGitHub();
