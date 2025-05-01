@@ -3,7 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  Verify API Key and execute Main.js script if valid
-// @author       OxyCoder
+// @author       OxyCoder/Zero
 // @match        *://linkvertise.com/*
 // @match        *://loot-link.com/*
 // @match        *://loot-links.com/*
