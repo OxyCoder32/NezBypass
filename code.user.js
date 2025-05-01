@@ -94,6 +94,7 @@
 // @match        *://tutwuri.id/*
 // @match        *://sfl.gl/ready/go?u=*
 // @match        *://pastesio.com/*
+// @icon         https://logospng.org/download/c-plus-plus/c-plus-plus-1024.png
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // ==/UserScript==
