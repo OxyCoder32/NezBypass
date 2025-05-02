@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Nez Userscript
 // @namespace    http://tampermonkey.net/
-// @version      0.1
-// @description  Nez Userscript
-// @author       OxyCoder/Zero
+// @version      0.0.1
+// @description  Auto Bypass Panda, Platoboost, KeyGuardian & more
+// @author       Lazaro
 // @match        *://linkvertise.com/*
 // @match        *://loot-link.com/*
 // @match        *://loot-links.com/*
@@ -94,15 +94,16 @@
 // @match        *://tutwuri.id/*
 // @match        *://sfl.gl/ready/go?u=*
 // @match        *://pastesio.com/*
-// @icon         https://logospng.org/download/c-plus-plus/c-plus-plus-1024.png
+// @icon         https://media.discordapp.net/attachments/1366233481125826592/1367640053463126067/Vibrant_Purple__N__Logo_Design.png?ex=6815518e&is=6814000e&hm=51041aabe74bd10fe18396be5b90c3aaac52e09685d3fc890913a8ef51554c1f&=&format=webp&quality=lossless&width=569&height=569
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
+
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    const apiKey = 'PASTE_YOUR_LINK_HERE';
+    const apiKey = 'PASTE_KEY_HERE';
     const serverUrl = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/refs/heads/main/url.txt';
 
     function getApiUrlFromGitHub() {
