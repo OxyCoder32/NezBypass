@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Nez Userscript
+// @name         Nez
 // @namespace    http://tampermonkey.net/
 // @version      0.0.1
 // @description  Auto Bypass Panda, Platoboost, KeyGuardian & more
