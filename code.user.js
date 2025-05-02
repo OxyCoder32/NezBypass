@@ -94,6 +94,7 @@
 // @match        *://tutwuri.id/*
 // @match        *://sfl.gl/ready/go?u=*
 // @match        *://pastesio.com/*
+// @license      Lazaro
 // @icon         https://media.discordapp.net/attachments/1366233481125826592/1367640053463126067/Vibrant_Purple__N__Logo_Design.png?ex=6815518e&is=6814000e&hm=51041aabe74bd10fe18396be5b90c3aaac52e09685d3fc890913a8ef51554c1f&=&format=webp&quality=lossless&width=569&height=569
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
