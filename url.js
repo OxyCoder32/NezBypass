@@ -43,12 +43,13 @@
         });
     }
 
-    function injectScript(code) {
-        const script = document.createElement('script');
-        script.type = 'text/javascript';  // Asegúrate de que el tipo sea correcto
-        script.textContent = `(function() { 'use strict'; ${code} })();`;
-        document.body.appendChild(script);
-    }
+function injectScript(code) {
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.textContent = code; // Inject the raw JavaScript code
+    document.body.appendChild(script); // Add it to the DOM to execute it
+}
+
 
     try {
         const apiKey = config().apikey;
