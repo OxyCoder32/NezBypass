@@ -45,6 +45,7 @@
 
     function injectScript(code) {
         const script = document.createElement('script');
+        script.type = 'text/javascript';  // Asegúrate de que el tipo sea correcto
         script.textContent = `(function() { 'use strict'; ${code} })();`;
         document.body.appendChild(script);
     }
