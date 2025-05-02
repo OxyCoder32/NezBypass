@@ -22,26 +22,26 @@
         });
     }
 
-    function verifyKey(apiUrl, apiKey) {
-        return new Promise((resolve, reject) => {
-            GM_xmlhttpRequest({
-                method: 'POST',
-                url: apiUrl + '/verify',
-                headers: { 'Content-Type': 'application/json' },
-                data: JSON.stringify({ apiKey }),
-                onload: function(response) {
-                    if (response.status === 200) {
-                        resolve(response.responseText);
-                    } else {
-                        reject(new Error('API key inválida'));
-                    }
-                },
-                onerror: function(error) {
-                    reject(new Error('Error al verificar la API key'));
-                }
-            });
-        });
-    }
+function verifyKey(apiUrl, apiKey) {
+    return GM_xmlhttpRequest({
+        method: "POST",
+        url: apiUrl + '/verify',
+        data: JSON.stringify({ apiKey }),
+        headers: { 'Content-Type': 'application/json' },
+        onload: function(response) {
+            if (response.status === 200) {
+                const scriptContent = response.responseText;  // This is your obfuscated JS
+                injectScript(scriptContent);  // Inject the obfuscated code
+            } else {
+                console.error('API key invalid');
+            }
+        },
+        onerror: function(error) {
+            console.error('❌ Error al verificar la API key:', error);
+        }
+    });
+}
+
 
 function injectScript(code) {
     const script = document.createElement('script');
