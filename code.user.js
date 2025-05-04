@@ -4,7 +4,7 @@
 // @version      0.0.1
 // @description  Auto Bypass Panda, Platoboost, KeyGuardian & more
 // @author       Lazaro
-// @logo         https://media.discordapp.net/attachments/1366233481125826592/1367640053463126067/Vibrant_Purple__N__Logo_Design.png?ex=6815518e&is=6814000e&hm=51041aabe74bd10fe18396be5b90c3aaac52e09685d3fc890913a8ef51554c1f&=&format=webp&quality=lossless&width=569&height=569
+// @icon         https://media.discordapp.net/attachments/1366233481125826592/1367640053463126067/Vibrant_Purple__N__Logo_Design.png?ex=6815518e&is=6814000e&hm=51041aabe74bd10fe18396be5b90c3aaac52e09685d3fc890913a8ef51554c1f&=&format=webp&quality=lossless&width=569&height=569
 // @match        *://linkvertise.com/*
 // @match        *://loot-link.com/*
 // @match        *://loot-links.com/*
@@ -86,132 +86,118 @@
 // @match        *://pastesio.com/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
-// @connect      raw.githubusercontent.com
-// @require      https://raw.githubusercontent.com/perritoelpro32/NezBypass/refs/heads/main/url.js
 // ==/UserScript==
 
 (function () {
-    'use strict';
+  'use strict';
 
-    // List of supported domains
-    const supportedDomains = [
-        "linkvertise.com",
-        "boost.ink",
-        "sub2unlock.com",
-        "lootlinks.com",
-        "cuty.io",
-        "mboost.me",
-        "rekonise.com",
-        "work.ink",
-        "adf.ly",
-        "shorte.st",
-        "ouo.io",
-        "exe.io",
-        "fc.lc",
-        "short.am",
-        "ity.im",
-        "link.tl",
-        "short.pe",
-        "adfoc.us",
-        "bc.vc",
-        "ity.im",
-        "cur.lv",
-        "adcraft.co",
-        "admy.link",
-        "linkbucks.com",
-        "zpag.es",
-        "tiny.cc",
-        "tinyurl.com",
-        "bit.ly",
-        "goo.gl",
-        "ow.ly",
-        "t.co"
-    ];
-
-    // Function to display the UI
-    function showNezUI(message, position = "bottom") {
-        const existing = document.getElementById("nez-ui");
-        if (existing) existing.remove();
-
-        const div = document.createElement("div");
-        div.id = "nez-ui";
-        div.textContent = message;
-        div.style.cssText = `
-            position: fixed;
-            ${position === "top" ? "top: 20px;" : "bottom: 20px;"}
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 24px;
-            font-size: 18px;
-            font-family: 'Arial', sans-serif;
-            background: #2f2f2f;
-            color: white;
-            border-radius: 16px;
-            border: 3px solid transparent;
-            z-index: 999999;
-            opacity: 0;
-            animation: nezFadeInOut 4s ease forwards, nezGlow 3s linear infinite;
-        `;
-        document.body.appendChild(div);
-
-        GM_addStyle(`
-            @keyframes nezFadeInOut {
-                0% { opacity: 0; transform: translateX(-50%) scale(0.95); }
-                10% { opacity: 1; transform: translateX(-50%) scale(1); }
-                90% { opacity: 1; transform: translateX(-50%) scale(1); }
-                100% { opacity: 0; transform: translateX(-50%) scale(0.95); }
-            }
-
-            @keyframes nezGlow {
-                0% { box-shadow: 0 0 8px red, 0 0 16px orange, 0 0 24px yellow; }
-                25% { box-shadow: 0 0 8px green, 0 0 16px cyan, 0 0 24px blue; }
-                50% { box-shadow: 0 0 8px violet, 0 0 16px red, 0 0 24px orange; }
-                75% { box-shadow: 0 0 8px yellow, 0 0 16px green, 0 0 24px cyan; }
-                100% { box-shadow: 0 0 8px blue, 0 0 16px violet, 0 0 24px red; }
-            }
-        `);
+  // Rainbow border animation
+  GM_addStyle(`
+    @keyframes rainbow {
+      0% { border-color: red; }
+      16% { border-color: orange; }
+      32% { border-color: yellow; }
+      48% { border-color: green; }
+      64% { border-color: cyan; }
+      80% { border-color: blue; }
+      100% { border-color: violet; }
     }
+  `);
 
-    // Function to copy and open the URL
-    function copyAndOpen(url) {
-        GM_setClipboard(url);
-        window.open(url, '_blank');
+  function showUI(message) {
+    if (document.getElementById("nez-ui")) return; // prevent duplicates
+
+    const box = document.createElement("div");
+    box.id = "nez-ui";
+    box.textContent = message;
+
+    Object.assign(box.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      padding: "12px 24px",
+      background: "#444",
+      color: "lightgrey",
+      fontSize: "16px",
+      fontWeight: "bold",
+      border: "3px solid red",
+      borderRadius: "16px",
+      zIndex: "999999",
+      animation: "rainbow 3s linear infinite"
+    });
+
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 3000);
+  }
+
+  function tryShowUI() {
+    if (document.readyState === "complete" || document.body) {
+      showUI("Nez connected successfully!");
+    } else {
+      // Retry shortly if body isn't ready yet
+      setTimeout(tryShowUI, 100);
     }
+  }
 
-    // Function to check if the current domain is supported
-    function isSupportedDomain() {
-        return supportedDomains.some(domain => window.location.hostname.includes(domain));
+  // Ensure it's run even for slow/dynamic pages
+  window.addEventListener("load", tryShowUI, { once: true });
+  tryShowUI();
+})();
+
+(function () {
+  'use strict';
+ 
+  // Rainbow border animation
+  GM_addStyle(`
+    @keyframes rainbow {`
+      0% { border-color: red; }
+      16% { border-color: orange; }
+      32% { border-color: yellow; }
+      48% { border-color: green; }
+      64% { border-color: cyan; }
+      80% { border-color: blue; }
+      100% { border-color: violet; }
     }
-
-    // Function to extract the final URL from known patterns
-    function extractFinalURL() {
-        // Example for Linkvertise
-        if (window.location.hostname.includes("linkvertise.com")) {
-            // Custom logic to extract the final URL
-            // This is a placeholder; actual implementation may vary
-            const meta = document.querySelector('meta[http-equiv="refresh"]');
-            if (meta) {
-                const content = meta.getAttribute("content");
-                const urlMatch = content.match(/url=(.*)/);
-                if (urlMatch && urlMatch[1]) {
-                    return urlMatch[1];
-                }
-            }
-        }
-
-        // Add more site-specific extraction logic here
-
-        return null;
+  `);
+ 
+  function showUI(message) {
+    if (document.getElementById("nez-ui")) return; // prevent duplicates
+ 
+    const box = document.createElement("div");
+    box.id = "nez-ui";
+    box.textContent = message;
+ 
+    Object.assign(box.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      padding: "12px 24px",
+      background: "#444",
+      color: "lightgrey",
+      fontSize: "16px",
+      fontWeight: "bold",
+      border: "3px solid red",
+      borderRadius: "16px",
+      zIndex: "999999",
+      animation: "rainbow 3s linear infinite"
+    });
+ 
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 3000);
+  }
+ 
+  function tryShowUI() {
+    if (document.readyState === "complete" || document.body) {
+      showUI("Nez connected successfully!");
+    } else {
+      // Retry shortly if body isn't ready yet
+      setTimeout(tryShowUI, 100);
     }
-
-    // Main execution
-    if (isSupportedDomain()) {
-        const finalURL = extractFinalURL();
-        if (finalURL) {
-            showNezUI("Nez Connected Successfully.", "bottom");
-            copyAndOpen(finalURL);
-        } else {
-            showNezUI("Not Supported", "top");
-        }
-    }
+  }
+ 
+  // Ensure it's run even for slow/dynamic pages
+  window.addEventListener("load", tryShowUI, { once: true });
+  tryShowUI();
 })();
