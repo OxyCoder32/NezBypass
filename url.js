@@ -1,55 +1,54 @@
 (function() {
-     'use strict';
+    'use strict';
 
-     const githubTxtUrl = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
+    const githubTxtUrl = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
 
-     function fetchApiUrl() {
-         return fetch(githubTxtUrl)
-             .then(res => res.text())
-             .then(text => text.trim());
-         return new Promise((resolve, reject) => {
-             GM_xmlhttpRequest({
-                 method: 'GET',
-                 url: githubTxtUrl,
-                 onload: function(response) {
-                     if (response.status === 200) {
-                         resolve(response.responseText.trim());
-                     } else {
-                         reject(new Error('Error al obtener la URL del API'));
-                     }
-                 },
-                 onerror: function(error) {
-                     reject(new Error('Error en la solicitud a GitHub'));
-                 }
-             });
-         });
-     }
+    // Function to fetch the API URL from the text file on GitHub
+    function fetchApiUrl() {
+        return fetch(githubTxtUrl)
+            .then(res => res.text())
+            .then(text => text.trim())
+            .catch(err => {
+                console.error('Error fetching API URL:', err);
+                return '';
+            });
+    }
 
-     function verifyKey(apiUrl, apiKey) {
-         return fetch(apiUrl + '/verify', {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({ apiKey })
-         })
-         .then(res => {
-             if (!res.ok) throw new Error('API key inválida');
-             return res.text();
-         return new Promise((resolve, reject) => {
-             GM_xmlhttpRequest({
-                 method: 'POST',
-                 url: apiUrl + '/verify',
-                 headers: { 'Content-Type': 'application/json' },
-                 data: JSON.stringify({ apiKey }),
-                 onload: function(response) {
-                     if (response.status === 200) {
-                         resolve(response.responseText);
-                     } else {
-                         reject(new Error('API key inválida'));
-                     }
-                 },
-                 onerror: function(error) {
-                     reject(new Error('Error al verificar la API key'));
-                 }
-             });
-         });
-     }
+    // Function to verify API Key
+    function verifyKey(apiUrl, apiKey) {
+        return fetch(apiUrl + '/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('API key inválida');
+            return res.text();
+        })
+        .catch(error => {
+            console.error('Error verifying API key:', error);
+            return '';
+        });
+    }
+
+    // This function gets the API URL and verifies the key
+    function checkApiKey(apiKey) {
+        fetchApiUrl().then(apiUrl => {
+            if (apiUrl) {
+                verifyKey(apiUrl, apiKey).then(response => {
+                    if (response === 'Valid') {
+                        console.log('API key is valid.');
+                        // Additional logic after successful key validation can go here
+                    } else {
+                        console.log('Invalid API key.');
+                    }
+                });
+            } else {
+                console.error('No API URL available');
+            }
+        });
+    }
+
+    // Expose the checkApiKey function to be used in the main userscript
+    window.checkApiKey = checkApiKey;
+})();
