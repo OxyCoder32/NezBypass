@@ -1,75 +1,52 @@
 (function () {
-  // Prevent multiple executions
-  if (window.nezBypassRunning) return;
-  window.nezBypassRunning = true;
+    'use strict';
 
-  if (!apiKey) return showLog("❌ API key missing");
+    const githubTxtUrl = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", startBypass);
-  } else {
-    startBypass();
-  }
-
-  async function startBypass() {
-    const url = window.location.href;
-
-    showLog(`🔑 API Key: ${apiKey}`);
-    showLog(`🌐 Target URL: ${url}`);
-
-    try {
-      const res = await fetch("http://localhost:3000/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey, url }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.redirect) {
-        showLog("✅ Access granted. Redirecting...");
-        setTimeout(() => {
-          window.location.href = data.redirect;
-        }, 2000);
-      } else if (res.ok) {
-        showLog("⚠️ No redirection required.");
-      } else {
-        showLog(`❌ Error: ${data.error}`);
-      }
-    } catch (err) {
-      console.error(err);
-      showLog("❌ Error during verification: " + err.message);
+    function fetchApiUrl() {
+        return fetch(githubTxtUrl)
+            .then(res => res.text())
+            .then(text => text.trim());
     }
-  }
 
-  function showLog(message) {
-    const panel = getOrCreatePanel();
-    const p = document.createElement("p");
-    p.textContent = message;
-    panel.appendChild(p);
-  }
-
-  function getOrCreatePanel() {
-    let panel = document.getElementById("nez-bypass-log");
-    if (!panel) {
-      panel = document.createElement("div");
-      panel.id = "nez-bypass-log";
-      panel.style.cssText = `
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        background: black;
-        color: white;
-        padding: 10px;
-        border: 3px solid;
-        border-image: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet) 1;
-        font-family: monospace;
-        z-index: 9999;
-        max-width: 400px;
-        word-wrap: break-word;
-      `;
-      document.body.appendChild(panel);
+    function verifyKey(apiUrl, apiKey) {
+        return fetch(apiUrl + '/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Invalid API key');
+            return res.text();
+        });
     }
-    return panel;
-  }
+
+    async function main() {
+        try {
+            const { apikey } = config();
+            const apiUrl = await fetchApiUrl();
+            const result = await verifyKey(apiUrl, apikey);
+            console.log('✅ API verified:', result);
+            const currentUrl = window.location.href;
+
+            // Redirigir si el resultado es una URL
+            if (result.startsWith('http')) {
+                window.location.href = result;
+            const response = await verifyKey(apiUrl, apikey, currentUrl);
+
+            if (response.status === 'ready' && response.redirect) {
+                console.log('✅ Redirecting to:', response.redirect);
+                window.location.href = response.redirect;
+            } else if (response.status === 'processing') {
+                console.log('⏳ Processing... Please wait or retry in a few seconds.');
+            } else {
+                console.warn('❓ Unknown response:', response);
+            }
+
+        } catch (error) {
+            console.error('❌ Error during verification:', error);
+        }
+    }
+
+    main();
 })();
