@@ -21,10 +21,6 @@
         });
     }
 
-    const config = () => ({
-        apikey: 'lZC7t7ATegHOgaclMIVGnip9oWRgLNM'
-    });
-
     async function main() {
         try {
             const { apikey } = config();
