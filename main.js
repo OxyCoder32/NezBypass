@@ -1,110 +1,83 @@
 (function () {
-    'use strict';
+  // Prevent multiple executions
+  if (window.nezBypassRunning) return;
+  window.nezBypassRunning = true;
 
-    const githubTxtUrl = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
+  // Delay until DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", startBypass);
+  } else {
+    startBypass();
+  }
 
-    function showUI(message, duration = 3000) {
-        const existing = document.getElementById("nez-ui");
-        if (existing) existing.remove();
+  function startBypass() {
+    try {
+      const apiKey = config()?.apikey;
+      const targetUrl = window.location.href;
 
-        const box = document.createElement("div");
-        box.id = "nez-ui";
-        box.textContent = message;
+      if (!apiKey) {
+        showLog("❌ API Key missing from config()");
+        return;
+      }
 
-        Object.assign(box.style, {
-            position: "fixed",
-            bottom: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            padding: "12px 24px",
-            background: "#444",
-            color: "lightgrey",
-            fontSize: "16px",
-            fontWeight: "bold",
-            border: "3px solid red",
-            borderRadius: "16px",
-            zIndex: "999999",
-            animation: "rainbow 3s linear infinite"
-        });
+      if (!targetUrl || targetUrl === "undefined") {
+        showLog("❌ Invalid or missing URL");
+        return;
+      }
 
-        document.body.appendChild(box);
-        setTimeout(() => box.remove(), duration);
-    }
+      showLog(`🔑 API Key: ${apiKey}`);
+      showLog(`🌐 Requested URL: ${targetUrl}`);
 
-    GM_addStyle(`
-        @keyframes rainbow {
-            0% { border-color: red; }
-            16% { border-color: orange; }
-            32% { border-color: yellow; }
-            48% { border-color: green; }
-            64% { border-color: cyan; }
-            80% { border-color: blue; }
-            100% { border-color: violet; }
-        }
-    `);
-
-    function fetchApiUrl() {
-        return fetch(githubTxtUrl)
-            .then(res => res.text())
-            .then(text => text.trim());
-    }
-
-    function getCachedVerification(apiKey) {
-        const data = localStorage.getItem(`nez-verification-${apiKey}`);
-        if (!data) return null;
-
-        const parsed = JSON.parse(data);
-        const now = Date.now();
-        return now - parsed.timestamp < 10 * 60 * 1000 ? parsed.result : null;
-    }
-
-    function setCachedVerification(apiKey, result) {
-        const cache = {
-            timestamp: Date.now(),
-            result
-        };
-        localStorage.setItem(`nez-verification-${apiKey}`, JSON.stringify(cache));
-    }
-
-    function verifyKey(apiUrl, apiKey, currentUrl) {
-        return fetch(`${apiUrl}/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey, url: currentUrl })
+      fetch(`http://localhost:3000/bypass?key=${apiKey}&url=${encodeURIComponent(targetUrl)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.redirect) {
+            showLog("✅ Access granted. Redirecting...");
+            setTimeout(() => {
+              window.location.href = data.redirect;
+            }, 2000);
+          } else {
+            showLog("❌ Access denied.");
+          }
         })
-        .then(res => {
-            if (!res.ok) throw new Error('Invalid API key');
-            return res.text();
+        .catch(err => {
+          console.error(err);
+          showLog("❌ Error connecting to API.");
         });
+    } catch (err) {
+      console.error(err);
+      showLog("❌ Critical error occurred.");
     }
+  }
 
-    async function main() {
-        try {
-            const { apikey } = config();
-            const cached = getCachedVerification(apikey);
-            if (cached) {
-                showUI("✅ Cached verification found");
-                if (cached.startsWith("http")) window.location.href = cached;
-                return;
-            }
+  function showLog(message) {
+    const panel = getOrCreatePanel();
+    const p = document.createElement("p");
+    p.textContent = message;
+    panel.appendChild(p);
+  }
 
-            const apiUrl = await fetchApiUrl();
-            const currentUrl = window.location.href;
-            const result = await verifyKey(apiUrl, apikey, currentUrl);
-
-            setCachedVerification(apikey, result);
-            showUI("✅ Verified successfully");
-
-            if (result.startsWith("http")) {
-                showUI("🔁 Redirecting...", 1500);
-                setTimeout(() => window.location.href = result, 1500);
-            }
-
-        } catch (error) {
-            showUI("❌ Verification failed");
-            console.error('❌ Error during verification:', error);
-        }
+  function getOrCreatePanel() {
+    let panel = document.getElementById("nez-bypass-log");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "nez-bypass-log";
+      panel.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: black;
+        color: white;
+        padding: 10px;
+        border: 3px solid;
+        border-image: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet) 1;
+        font-family: monospace;
+        z-index: 9999;
+        max-width: 400px;
+        word-wrap: break-word;
+      `;
+      document.body.appendChild(panel);
     }
-
-    main();
+    return panel;
+  }
 })();
