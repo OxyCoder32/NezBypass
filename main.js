@@ -1,57 +1,44 @@
 (function () {
+  // Prevent multiple executions
   if (window.nezBypassRunning) return;
   window.nezBypassRunning = true;
 
-  const waitForDOM = () => {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", startBypass);
-    } else {
-      startBypass();
-    }
-  };
+  if (!apiKey) return showLog("❌ API key missing");
 
-  function startBypass() {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", startBypass);
+  } else {
+    startBypass();
+  }
+
+  async function startBypass() {
+    const url = window.location.href;
+
+    showLog(`🔑 API Key: ${apiKey}`);
+    showLog(`🌐 Target URL: ${url}`);
+
     try {
-      // API key desde config() o fallback
-      const apiKey = typeof config === "function" && config()?.apikey
-        ? config().apikey
-        : "default-fallback-key";
+      const res = await fetch("http://localhost:3000/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey, url }),
+      });
 
-      const targetUrl = window.location.href;
+      const data = await res.json();
 
-      if (!apiKey || apiKey === "default-fallback-key") {
-        showLog("❌ API Key missing or fallback in use.");
-        return;
+      if (res.ok && data.redirect) {
+        showLog("✅ Access granted. Redirecting...");
+        setTimeout(() => {
+          window.location.href = data.redirect;
+        }, 2000);
+      } else if (res.ok) {
+        showLog("⚠️ No redirection required.");
+      } else {
+        showLog(`❌ Error: ${data.error}`);
       }
-
-      if (!targetUrl || typeof targetUrl !== "string" || targetUrl === "undefined") {
-        showLog("❌ Invalid or missing URL.");
-        return;
-      }
-
-      showLog(`🔑 API Key: ${apiKey}`);
-      showLog(`🌐 Requested URL: ${targetUrl}`);
-
-      fetch(`http://localhost:3000/bypass?key=${apiKey}&url=${encodeURIComponent(targetUrl)}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.redirect) {
-            showLog("✅ Access granted. Redirecting...");
-            setTimeout(() => {
-              window.location.href = data.redirect;
-            }, 2000);
-          } else {
-            showLog("❌ Access denied or no redirect provided.");
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          showLog("❌ Error connecting to API.");
-        });
-
     } catch (err) {
       console.error(err);
-      showLog("❌ Critical error occurred.");
+      showLog("❌ Error during verification: " + err.message);
     }
   }
 
@@ -85,6 +72,4 @@
     }
     return panel;
   }
-
-  waitForDOM();
 })();
