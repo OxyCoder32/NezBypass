@@ -1,28 +1,31 @@
 (function () {
-  // Prevent multiple executions
   if (window.nezBypassRunning) return;
   window.nezBypassRunning = true;
 
-  // Delay until DOM is ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", startBypass);
-  } else {
-    startBypass();
-  }
+  const waitForDOM = () => {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", startBypass);
+    } else {
+      startBypass();
+    }
+  };
 
   function startBypass() {
     try {
-      const apiKey = config()?.apikey;
+      // API key desde config() o fallback
+      const apiKey = typeof config === "function" && config()?.apikey
+        ? config().apikey
+        : "default-fallback-key";
+
       const targetUrl = window.location.href;
 
-      if (!apiKey) {
-        showLog("❌ API Key missing from config()");
+      if (!apiKey || apiKey === "default-fallback-key") {
+        showLog("❌ API Key missing or fallback in use.");
         return;
       }
 
-      if (!targetUrl || targetUrl === "undefined") {
-        showLog("❌ Invalid or missing URL");
-        showLog(targetUrl);
+      if (!targetUrl || typeof targetUrl !== "string" || targetUrl === "undefined") {
+        showLog("❌ Invalid or missing URL.");
         return;
       }
 
@@ -38,13 +41,14 @@
               window.location.href = data.redirect;
             }, 2000);
           } else {
-            showLog("❌ Access denied.");
+            showLog("❌ Access denied or no redirect provided.");
           }
         })
         .catch(err => {
           console.error(err);
           showLog("❌ Error connecting to API.");
         });
+
     } catch (err) {
       console.error(err);
       showLog("❌ Critical error occurred.");
@@ -81,4 +85,6 @@
     }
     return panel;
   }
+
+  waitForDOM();
 })();
