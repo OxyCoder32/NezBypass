@@ -1,55 +1,56 @@
- (function() {
-     'use strict';
+(function () {
+  'use strict';
 
-     const githubTxtUrl = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
+  // Rainbow border animation
+  GM_addStyle(`
+    @keyframes rainbow {
+      0% { border-color: red; }
+      16% { border-color: orange; }
+      32% { border-color: yellow; }
+      48% { border-color: green; }
+      64% { border-color: cyan; }
+      80% { border-color: blue; }
+      100% { border-color: violet; }
+    }
+  `);
 
-     function fetchApiUrl() {
-         return fetch(githubTxtUrl)
-             .then(res => res.text())
-             .then(text => text.trim());
-         return new Promise((resolve, reject) => {
-             GM_xmlhttpRequest({
-                 method: 'GET',
-                 url: githubTxtUrl,
-                 onload: function(response) {
-                     if (response.status === 200) {
-                         resolve(response.responseText.trim());
-                     } else {
-                         reject(new Error('Error al obtener la URL del API'));
-                     }
-                 },
-                 onerror: function(error) {
-                     reject(new Error('Error en la solicitud a GitHub'));
-                 }
-             });
-         });
-     }
+  function showUI(message) {
+    if (document.getElementById("nez-ui")) return; // prevent duplicates
 
-     function verifyKey(apiUrl, apiKey) {
-         return fetch(apiUrl + '/verify', {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({ apiKey })
-         })
-         .then(res => {
-             if (!res.ok) throw new Error('API key inválida');
-             return res.text();
-         return new Promise((resolve, reject) => {
-             GM_xmlhttpRequest({
-                 method: 'POST',
-                 url: apiUrl + '/verify',
-                 headers: { 'Content-Type': 'application/json' },
-                 data: JSON.stringify({ apiKey }),
-                 onload: function(response) {
-                     if (response.status === 200) {
-                         resolve(response.responseText);
-                     } else {
-                         reject(new Error('API key inválida'));
-                     }
-                 },
-                 onerror: function(error) {
-                     reject(new Error('Error al verificar la API key'));
-                 }
-             });
-         });
-     }
+    const box = document.createElement("div");
+    box.id = "nez-ui";
+    box.textContent = message;
+
+    Object.assign(box.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      padding: "12px 24px",
+      background: "#444",
+      color: "lightgrey",
+      fontSize: "16px",
+      fontWeight: "bold",
+      border: "3px solid red",
+      borderRadius: "16px",
+      zIndex: "999999",
+      animation: "rainbow 3s linear infinite"
+    });
+
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 3000);
+  }
+
+  function tryShowUI() {
+    if (document.readyState === "complete" || document.body) {
+      showUI("Nez connected successfully!");
+    } else {
+      // Retry shortly if body isn't ready yet
+      setTimeout(tryShowUI, 100);
+    }
+  }
+
+  // Ensure it's run even for slow/dynamic pages
+  window.addEventListener("load", tryShowUI, { once: true });
+  tryShowUI();
+})();
