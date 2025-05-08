@@ -22,6 +22,7 @@
 
       if (!targetUrl || targetUrl === "undefined") {
         showLog("❌ Invalid or missing URL");
+        showLog(targetUrl);
         return;
       }
 
