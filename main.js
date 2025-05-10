@@ -1,65 +1,18 @@
-(function () {
-    const config = () => ({
-        apikey: 'lZC7t7ATegHOgaclMIVGnip9oWRgLNM'
-    });
+window.nezBypass = {
+    verifyAndBypass: async function(apiKey, url) {
+        const API_SERVER = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
 
-    const apiKey = config().apikey;
-
-    const API_SERVER = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
-
-    // Cargar URL del servidor desde url.txt
-    const fetchServerURL = async () => {
         try {
             const res = await fetch(API_SERVER);
-            const url = await res.text();
-            return url.trim();
-        } catch (e) {
-            console.error('❌ Failed to fetch server URL:', e);
-            return null;
-        }
-    };
+            const server = (await res.text()).trim();
 
-    // Inyectar un script dentro del DOM real para acceder al contexto de la página
-    const injectScriptToGetURL = () => {
-        return new Promise((resolve) => {
-            const script = document.createElement('script');
-            script.textContent = `
-                (function() {
-                    window.postMessage({ type: 'NEZ_CURRENT_URL', url: window.location.href }, '*');
-                })();
-            `;
-            document.documentElement.appendChild(script);
-            script.remove();
-
-            window.addEventListener('message', function handler(event) {
-                if (event.data && event.data.type === 'NEZ_CURRENT_URL') {
-                    window.removeEventListener('message', handler);
-                    resolve(event.data.url);
-                }
-            });
-        });
-    };
-
-    const verifyAndBypass = async () => {
-        const server = await fetchServerURL();
-        if (!server) return;
-
-        const currentURL = await injectScriptToGetURL();
-        console.log('🌐 Actual page URL:', currentURL);
-
-        if (!currentURL) {
-            console.error('❌ Could not get current URL');
-            return;
-        }
-
-        try {
-            const res = await fetch(`${server}/verify`, {
+            const response = await fetch(`${server}/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ apiKey, url: currentURL })
+                body: JSON.stringify({ apiKey, url })
             });
 
-            const data = await res.json();
+            const data = await response.json();
 
             if (data.status === 'ready' && data.redirect) {
                 console.log('✅ Redirecting to:', data.redirect);
@@ -69,10 +22,9 @@
             } else {
                 console.warn('⚠️ Unexpected response:', data);
             }
-        } catch (err) {
-            console.error('❌ Failed to verify:', err);
-        }
-    };
 
-    verifyAndBypass();
-})();
+        } catch (err) {
+            console.error('❌ Failed to verify or connect:', err);
+        }
+    }
+};
