@@ -19,7 +19,7 @@
         }
     };
 
-    // Inyectar un script dentro del DOM real para acceder al contexto de la página
+
     const injectScriptToGetURL = () => {
         return new Promise((resolve) => {
             const script = document.createElement('script');
