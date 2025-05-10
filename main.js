@@ -1,6 +1,6 @@
-(async function() {
+(function () {
     const config = () => ({
-        apikey: 'lZC7t7ATegHOgaclMIVGnip9oWRgLNM' // Tu API key aquí
+        apikey: 'lZC7t7ATegHOgaclMIVGnip9oWRgLNM'
     });
 
     const apiKey = config().apikey;
@@ -19,9 +19,38 @@
         }
     };
 
+    // Inyectar un script dentro del DOM real para acceder al contexto de la página
+    const injectScriptToGetURL = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.textContent = `
+                (function() {
+                    window.postMessage({ type: 'NEZ_CURRENT_URL', url: window.location.href }, '*');
+                })();
+            `;
+            document.documentElement.appendChild(script);
+            script.remove();
+
+            window.addEventListener('message', function handler(event) {
+                if (event.data && event.data.type === 'NEZ_CURRENT_URL') {
+                    window.removeEventListener('message', handler);
+                    resolve(event.data.url);
+                }
+            });
+        });
+    };
+
     const verifyAndBypass = async () => {
         const server = await fetchServerURL();
         if (!server) return;
+
+        const currentURL = await injectScriptToGetURL();
+        console.log('🌐 Actual page URL:', currentURL);
+
+        if (!currentURL) {
+            console.error('❌ Could not get current URL');
+            return;
+        }
 
         try {
             const res = await fetch(`${server}/verify`, {
