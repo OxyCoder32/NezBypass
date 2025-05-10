@@ -4,7 +4,6 @@
     });
 
     const apiKey = config().apikey;
-    const currentURL = window.location.href;
 
     const API_SERVER = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
 
