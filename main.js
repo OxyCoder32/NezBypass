@@ -1,52 +1,50 @@
-(function () {
-    'use strict';
+(async function() {
+    const config = () => ({
+        apikey: 'lZC7t7ATegHOgaclMIVGnip9oWRgLNM' // Tu API key aquí
+    });
 
-    const githubTxtUrl = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
+    const apiKey = config().apikey;
+    const currentURL = window.location.href;
 
-    function fetchApiUrl() {
-        return fetch(githubTxtUrl)
-            .then(res => res.text())
-            .then(text => text.trim());
-    }
+    const API_SERVER = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
 
-    function verifyKey(apiUrl, apiKey) {
-        return fetch(apiUrl + '/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey })
-        })
-        .then(res => {
-            if (!res.ok) throw new Error('Invalid API key');
-            return res.text();
-        });
-    }
-
-    async function main() {
+    // Cargar URL del servidor desde url.txt
+    const fetchServerURL = async () => {
         try {
-            const { apikey } = config();
-            const apiUrl = await fetchApiUrl();
-            const result = await verifyKey(apiUrl, apikey);
-            console.log('✅ API verified:', result);
-            const currentUrl = window.location.href;
-
-            // Redirigir si el resultado es una URL
-            if (result.startsWith('http')) {
-                window.location.href = result;
-            const response = await verifyKey(apiUrl, apikey, currentUrl);
-
-            if (response.status === 'ready' && response.redirect) {
-                console.log('✅ Redirecting to:', response.redirect);
-                window.location.href = response.redirect;
-            } else if (response.status === 'processing') {
-                console.log('⏳ Processing... Please wait or retry in a few seconds.');
-            } else {
-                console.warn('❓ Unknown response:', response);
-            }
-
-        } catch (error) {
-            console.error('❌ Error during verification:', error);
+            const res = await fetch(API_SERVER);
+            const url = await res.text();
+            return url.trim();
+        } catch (e) {
+            console.error('❌ Failed to fetch server URL:', e);
+            return null;
         }
-    }
+    };
 
-    main();
+    const verifyAndBypass = async () => {
+        const server = await fetchServerURL();
+        if (!server) return;
+
+        try {
+            const res = await fetch(`${server}/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ apiKey, url: currentURL })
+            });
+
+            const data = await res.json();
+
+            if (data.status === 'ready' && data.redirect) {
+                console.log('✅ Redirecting to:', data.redirect);
+                window.location.href = data.redirect;
+            } else if (data.status === 'ok') {
+                console.log('ℹ️ No bypass required:', data.message);
+            } else {
+                console.warn('⚠️ Unexpected response:', data);
+            }
+        } catch (err) {
+            console.error('❌ Failed to verify:', err);
+        }
+    };
+
+    verifyAndBypass();
 })();
