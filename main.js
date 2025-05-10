@@ -1,6 +1,6 @@
 (function () {
     const config = () => ({
-        apikey: 'lZC7t7ATegHOgaclMIVGnip9oWRgLNM'
+        apikey: '37VOW1zpZfK7EXyCgcLuTMEwHmzRceV'
     });
 
     const apiKey = config().apikey;
