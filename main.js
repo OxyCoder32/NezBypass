@@ -1,13 +1,27 @@
 (function () {
-    const config = () => ({
-        apikey: 'cZIZ5jCAvoq6zEtA0AuX8cZJk3BVjo6y'
-    });
+    const getApiKeyFromUserScript = () => {
+        try {
+            if (typeof config === 'function') {
+                const result = config();
+                if (result && result.apikey) {
+                    return result.apikey;
+                }
+            }
+        } catch (e) {
+            console.error('❌ Could not retrieve API key from userscript:', e);
+        }
+        return null;
+    };
 
-    const apiKey = config().apikey;
+    const apiKey = getApiKeyFromUserScript();
+
+    if (!apiKey) {
+        console.error('❌ No API key configured. Edit the userscript config().');
+        return;
+    }
 
     const API_SERVER = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
 
-    // Cargar URL del servidor desde url.txt
     const fetchServerURL = async () => {
         try {
             const res = await fetch(API_SERVER);
@@ -18,7 +32,6 @@
             return null;
         }
     };
-
 
     const injectScriptToGetURL = () => {
         return new Promise((resolve) => {
