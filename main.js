@@ -77,28 +77,29 @@
             return;
         }
 
-        if (isCloudflareChallenge()) {
-            console.log('☁️ Cloudflare challenge detected, consultando API para bypass...');
-            try {
-                const res = await fetch(`${server}/bypass`, { // endpoint para CF, lo ajustas en tu API
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ apiKey, url: currentURL })
-                });
+       if (isCloudflareChallenge()) {
+    console.log('☁️ Cloudflare challenge detected, usando Python bypass...');
 
-                const data = await res.json();
+    try {
+        const res = await fetch(`${server}/bypass`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey, url: currentURL })
+        });
 
-                if (data.status === 'ready' && data.redirect) {
-                    console.log('✅ Cloudflare bypass listo, redirigiendo a:', data.redirect);
-                    window.location.href = data.redirect;
-                } else if (data.status === 'error') {
-                    console.warn('⚠️ Error en Cloudflare bypass:', data.message);
-                } else {
-                    console.warn('⚠️ Respuesta inesperada del CF bypass:', data);
-                }
-            } catch (err) {
-                console.error('❌ Falló el bypass Cloudflare:', err);
-            }
+        const data = await res.json();
+
+        if (data.status === 'success' && data.data?.bypassed_url) {
+            console.log('✅ Python bypass result:', data.data.bypassed_url);
+            window.location.href = data.data.bypassed_url;
+        } else {
+            console.warn('⚠️ Respuesta inesperada del Python bypass:', data);
+        }
+    } catch (err) {
+        console.error('❌ Falló el bypass con Python (API /bypass):', err);
+    }
+}
+
         } else {
             // Si no hay Cloudflare, hace el bypass normal
             try {
