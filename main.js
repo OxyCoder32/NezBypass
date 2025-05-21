@@ -54,16 +54,20 @@
     };
 
     // Función para detectar Cloudflare típico en la página
-    const isCloudflareChallenge = () => {
-        const bodyText = document.body.innerText || '';
-        // Puedes ampliar condiciones según tipos de página Cloudflare
-        return (
-            bodyText.includes('Checking your browser before accessing') ||
-            bodyText.includes('Attention Required! | Cloudflare') ||
-            !!document.querySelector('div#cf-wrapper') ||
-            !!document.querySelector('div.cf-browser-verification')
-        );
-    };
+const isCloudflareChallenge = () => {
+    const bodyText = document.body.innerText || '';
+    return (
+        bodyText.includes('Verifica que eres un ser humano') ||
+        bodyText.includes('Attention Required! | Cloudflare') ||
+        bodyText.includes('Verificando tu navegador') ||
+        bodyText.includes('Attention Required! | Cloudflare') ||
+        !!document.querySelector('div#cf-wrapper') ||
+        !!document.querySelector('div.cf-browser-verification') ||
+        !!document.querySelector('iframe[src*="turnstile"]') || // ⬅️ Añadido para detectar Turnstile
+        !!document.querySelector('iframe[src*="challenges.cloudflare.com"]') // ⬅️ Alternativa para CF token
+    );
+};
+
 
     const verifyAndBypass = async () => {
         const server = await fetchServerURL();
