@@ -53,6 +53,18 @@
         });
     };
 
+    // Función para detectar Cloudflare típico en la página
+    const isCloudflareChallenge = () => {
+        const bodyText = document.body.innerText || '';
+        // Puedes ampliar condiciones según tipos de página Cloudflare
+        return (
+            bodyText.includes('Checking your browser before accessing') ||
+            bodyText.includes('Attention Required! | Cloudflare') ||
+            !!document.querySelector('div#cf-wrapper') ||
+            !!document.querySelector('div.cf-browser-verification')
+        );
+    };
+
     const verifyAndBypass = async () => {
         const server = await fetchServerURL();
         if (!server) return;
@@ -65,25 +77,50 @@
             return;
         }
 
-        try {
-            const res = await fetch(`${server}/verify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ apiKey, url: currentURL })
-            });
+        if (isCloudflareChallenge()) {
+            console.log('☁️ Cloudflare challenge detected, consultando API para bypass...');
+            try {
+                const res = await fetch(`${server}/cloudflare-bypass`, { // endpoint para CF, lo ajustas en tu API
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey, url: currentURL })
+                });
 
-            const data = await res.json();
+                const data = await res.json();
 
-            if (data.status === 'ready' && data.redirect) {
-                console.log('✅ Redirecting to:', data.redirect);
-                window.location.href = data.redirect;
-            } else if (data.status === 'ok') {
-                console.log('ℹ️ No bypass required:', data.message);
-            } else {
-                console.warn('⚠️ Unexpected response:', data);
+                if (data.status === 'ready' && data.redirect) {
+                    console.log('✅ Cloudflare bypass listo, redirigiendo a:', data.redirect);
+                    window.location.href = data.redirect;
+                } else if (data.status === 'error') {
+                    console.warn('⚠️ Error en Cloudflare bypass:', data.message);
+                } else {
+                    console.warn('⚠️ Respuesta inesperada del CF bypass:', data);
+                }
+            } catch (err) {
+                console.error('❌ Falló el bypass Cloudflare:', err);
             }
-        } catch (err) {
-            console.error('❌ Failed to verify:', err);
+        } else {
+            // Si no hay Cloudflare, hace el bypass normal
+            try {
+                const res = await fetch(`${server}/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey, url: currentURL })
+                });
+
+                const data = await res.json();
+
+                if (data.status === 'ready' && data.redirect) {
+                    console.log('✅ Redirecting to:', data.redirect);
+                    window.location.href = data.redirect;
+                } else if (data.status === 'ok') {
+                    console.log('ℹ️ No bypass required:', data.message);
+                } else {
+                    console.warn('⚠️ Unexpected response:', data);
+                }
+            } catch (err) {
+                console.error('❌ Failed to verify:', err);
+            }
         }
     };
 
