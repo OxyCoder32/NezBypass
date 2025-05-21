@@ -84,64 +84,75 @@ const isCloudflareChallenge = () => {
 
 
     const verifyAndBypass = async () => {
-        const server = await fetchServerURL();
-        if (!server) return;
+    const server = await fetchServerURL();
+    if (!server) return;
 
-        const currentURL = await injectScriptToGetURL();
-        console.log('🌐 Actual page URL:', currentURL);
+    const currentURL = await injectScriptToGetURL();
+    console.log('🌐 Actual page URL:', currentURL);
 
-        if (!currentURL) {
-            console.error('❌ Could not get current URL');
-            return;
-        }
-
-       if (isCloudflareChallenge()) {
-    console.log('☁️ Cloudflare challenge detected, usando Python bypass...');
-
-    try {
-        const res = await fetch(`${server}/bypass`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey, url: currentURL })
-        });
-
-        const data = await res.json();
-
-        if (data.status === 'success' && data.data?.bypassed_url) {
-            console.log('✅ Python bypass result:', data.data.bypassed_url);
-            window.location.href = data.data.bypassed_url;
-        } else {
-            console.warn('⚠️ Respuesta inesperada del Python bypass:', data);
-        }
-    } catch (err) {
-        console.error('❌ Falló el bypass con Python (API /bypass):', err);
+    if (!currentURL) {
+        console.error('❌ Could not get current URL');
+        return;
     }
-}
 
-        } else {
-            // Si no hay Cloudflare, hace el bypass normal
-            try {
-                const res = await fetch(`${server}/verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ apiKey, url: currentURL })
-                });
+    if (isCloudflareChallenge()) {
+        console.log('☁️ Cloudflare challenge detected, consulting API for bypass...');
+        try {
+            const res = await fetch(`${server}/bypass`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ apiKey, url: currentURL })
+            });
 
-                const data = await res.json();
+            const data = await res.json();
 
-                if (data.status === 'ready' && data.redirect) {
-                    console.log('✅ Redirecting to:', data.redirect);
-                    window.location.href = data.redirect;
-                } else if (data.status === 'ok') {
-                    console.log('ℹ️ No bypass required:', data.message);
-                } else {
-                    console.warn('⚠️ Unexpected response:', data);
+            if (data.bypassed_url) {
+                console.log('✅ Cloudflare bypass ready, redirecting to:', data.bypassed_url);
+                console.log('ℹ️ Message:', data.message || '(no message)');
+                if (data.cookies) {
+                    console.log('🍪 Cookies received:', data.cookies);
+                    // Optionally, you could set cookies here if needed
                 }
-            } catch (err) {
-                console.error('❌ Failed to verify:', err);
+                window.location.href = data.bypassed_url;
+
+            } else if (data.status === 'ready' && data.redirect) {
+                // Backwards compatibility
+                console.log('✅ Cloudflare bypass ready, redirecting to:', data.redirect);
+                window.location.href = data.redirect;
+
+            } else if (data.status === 'error' || data.status === 'failed') {
+                console.warn('⚠️ Error in Cloudflare bypass:', data.message || data.error || '(no message)');
+            } else {
+                console.warn('⚠️ Unexpected response from CF bypass:', data);
             }
+        } catch (err) {
+            console.error('❌ Cloudflare bypass failed:', err);
         }
-    };
+    } else {
+        // Normal verify endpoint
+        try {
+            const res = await fetch(`${server}/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ apiKey, url: currentURL })
+            });
+
+            const data = await res.json();
+
+            if (data.status === 'ready' && data.redirect) {
+                console.log('✅ Redirecting to:', data.redirect);
+                window.location.href = data.redirect;
+            } else if (data.status === 'ok') {
+                console.log('ℹ️ No bypass required:', data.message);
+            } else {
+                console.warn('⚠️ Unexpected response:', data);
+            }
+        } catch (err) {
+            console.error('❌ Failed to verify:', err);
+        }
+    }
+};
+
 
     verifyAndBypass();
 })();
