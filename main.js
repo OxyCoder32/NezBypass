@@ -70,6 +70,7 @@
             !!document.querySelector('div#cf-wrapper') ||
             !!document.querySelector('div.cf-browser-verification') ||
             !!document.querySelector('iframe[src*="turnstile"]') ||
+            !!document.title.includes("Un momento") ||
             !!document.querySelector('iframe[src*="challenges.cloudflare.com"]');
 
         if (challengeDetected) {
