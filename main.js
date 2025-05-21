@@ -53,106 +53,108 @@
         });
     };
 
-    // Función para detectar Cloudflare típico en la página
-const isCloudflareChallenge = () => {
-    const bodyText = document.body.innerText?.toLowerCase() || '';
+    // Función para detectar Cloudflare típico en la página (inglés y español)
+    const isCloudflareChallenge = () => {
+        const bodyText = document.body.innerText?.toLowerCase() || '';
 
-    const indicators = [
-        // Inglés
-        'checking your browser before accessing',
-        'attention required! | cloudflare',
-        // Español
-        'verificando tu navegador antes de acceder',
-        '¡atención requerida! | cloudflare'
-    ];
+        const indicators = [
+            // Inglés
+            'checking your browser before accessing',
+            'attention required! | cloudflare',
+            // Español
+            'verificando tu navegador antes de acceder',
+            '¡atención requerida! | cloudflare'
+        ];
 
-    const challengeDetected = indicators.some(ind => bodyText.includes(ind)) ||
-        !!document.querySelector('div#cf-wrapper') ||
-        !!document.querySelector('div.cf-browser-verification') ||
-        !!document.querySelector('iframe[src*="turnstile"]') ||
-        !!document.querySelector('iframe[src*="challenges.cloudflare.com"]');
+        const challengeDetected = indicators.some(ind => bodyText.includes(ind)) ||
+            !!document.querySelector('div#cf-wrapper') ||
+            !!document.querySelector('div.cf-browser-verification') ||
+            !!document.querySelector('iframe[src*="turnstile"]') ||
+            !!document.querySelector('iframe[src*="challenges.cloudflare.com"]');
 
-    if (challengeDetected) {
-        console.log('☁️ Cloudflare o Turnstile detectado en la página.');
-    } else {
-        console.log('✅ No se detectó desafío de Cloudflare en esta página.');
-    }
+        if (challengeDetected) {
+            console.log('☁️ Cloudflare o Turnstile detectado en la página.');
+        } else {
+            console.log('✅ No se detectó desafío de Cloudflare en esta página.');
+        }
 
-    return challengeDetected;
-};
+        return challengeDetected;
+    };
 
-
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     const verifyAndBypass = async () => {
-    const server = await fetchServerURL();
-    if (!server) return;
+        console.log('⏳ Esperando 5 segundos antes de verificar captcha...');
+        await delay(5000);
 
-    const currentURL = await injectScriptToGetURL();
-    console.log('🌐 Actual page URL:', currentURL);
+        const server = await fetchServerURL();
+        if (!server) return;
 
-    if (!currentURL) {
-        console.error('❌ Could not get current URL');
-        return;
-    }
+        const currentURL = await injectScriptToGetURL();
+        console.log('🌐 Actual page URL:', currentURL);
 
-    if (isCloudflareChallenge()) {
-        console.log('☁️ Cloudflare challenge detected, consulting API for bypass...');
-        try {
-            const res = await fetch(`${server}/bypass`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ apiKey, url: currentURL })
-            });
+        if (!currentURL) {
+            console.error('❌ No se pudo obtener la URL actual');
+            return;
+        }
 
-            const data = await res.json();
+        if (isCloudflareChallenge()) {
+            console.log('☁️ Se detectó desafío de Cloudflare, consultando API para bypass...');
+            try {
+                const res = await fetch(`${server}/bypass`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey, url: currentURL })
+                });
 
-            if (data.bypassed_url) {
-                console.log('✅ Cloudflare bypass ready, redirecting to:', data.bypassed_url);
-                console.log('ℹ️ Message:', data.message || '(no message)');
-                if (data.cookies) {
-                    console.log('🍪 Cookies received:', data.cookies);
-                    // Optionally, you could set cookies here if needed
+                const data = await res.json();
+
+                if (data.bypassed_url) {
+                    console.log('✅ Bypass de Cloudflare listo, redirigiendo a:', data.bypassed_url);
+                    console.log('ℹ️ Mensaje:', data.message || '(sin mensaje)');
+                    if (data.cookies) {
+                        console.log('🍪 Cookies recibidas:', data.cookies);
+                        // Aquí opcionalmente puedes setear cookies si quieres
+                    }
+                    window.location.href = data.bypassed_url;
+
+                } else if (data.status === 'ready' && data.redirect) {
+                    // Compatibilidad anterior
+                    console.log('✅ Bypass de Cloudflare listo, redirigiendo a:', data.redirect);
+                    window.location.href = data.redirect;
+
+                } else if (data.status === 'error' || data.status === 'failed') {
+                    console.warn('⚠️ Error en el bypass de Cloudflare:', data.message || data.error || '(sin mensaje)');
+                } else {
+                    console.warn('⚠️ Respuesta inesperada del bypass:', data);
                 }
-                window.location.href = data.bypassed_url;
-
-            } else if (data.status === 'ready' && data.redirect) {
-                // Backwards compatibility
-                console.log('✅ Cloudflare bypass ready, redirecting to:', data.redirect);
-                window.location.href = data.redirect;
-
-            } else if (data.status === 'error' || data.status === 'failed') {
-                console.warn('⚠️ Error in Cloudflare bypass:', data.message || data.error || '(no message)');
-            } else {
-                console.warn('⚠️ Unexpected response from CF bypass:', data);
+            } catch (err) {
+                console.error('❌ Falló el bypass de Cloudflare:', err);
             }
-        } catch (err) {
-            console.error('❌ Cloudflare bypass failed:', err);
-        }
-    } else {
-        // Normal verify endpoint
-        try {
-            const res = await fetch(`${server}/verify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ apiKey, url: currentURL })
-            });
+        } else {
+            // Endpoint verify normal
+            try {
+                const res = await fetch(`${server}/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey, url: currentURL })
+                });
 
-            const data = await res.json();
+                const data = await res.json();
 
-            if (data.status === 'ready' && data.redirect) {
-                console.log('✅ Redirecting to:', data.redirect);
-                window.location.href = data.redirect;
-            } else if (data.status === 'ok') {
-                console.log('ℹ️ No bypass required:', data.message);
-            } else {
-                console.warn('⚠️ Unexpected response:', data);
+                if (data.status === 'ready' && data.redirect) {
+                    console.log('✅ Redirigiendo a:', data.redirect);
+                    window.location.href = data.redirect;
+                } else if (data.status === 'ok') {
+                    console.log('ℹ️ No se requiere bypass:', data.message);
+                } else {
+                    console.warn('⚠️ Respuesta inesperada:', data);
+                }
+            } catch (err) {
+                console.error('❌ Falló la verificación:', err);
             }
-        } catch (err) {
-            console.error('❌ Failed to verify:', err);
         }
-    }
-};
-
+    };
 
     verifyAndBypass();
 })();
