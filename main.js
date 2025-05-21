@@ -111,37 +111,39 @@
                 const data = await res.json();
 
                 // Caso 1: respuesta tradicional donde bypassed_url está en raíz
-if (data.bypassed_url) {
-    console.log('✅ Bypass de Cloudflare listo, redirigiendo a:', data.bypassed_url);
-    console.log('ℹ️ Mensaje:', data.message || '(sin mensaje)');
-    if (data.cookies) {
-        console.log('🍪 Cookies recibidas:', data.cookies);
-    }
-    window.location.href = data.bypassed_url;
+                if (data.bypassed_url) {
+                    console.log('✅ Bypass de Cloudflare listo, redirigiendo a:', data.bypassed_url);
+                    console.log('ℹ️ Mensaje:', data.message || '(sin mensaje)');
+                    if (data.cookies) {
+                        console.log('🍪 Cookies recibidas:', data.cookies);
+                    }
+                    window.location.href = data.bypassed_url;
 
-// Caso 2: respuesta nueva con estructura {status: "success", data: {...}}
-} else if (data.status === 'success' && data.data && data.data.bypassed_url) {
-    console.log('✅ Bypass de Cloudflare listo, redirigiendo a:', data.data.bypassed_url);
-    console.log('ℹ️ Mensaje:', data.message || '(sin mensaje)');
-    if (data.data.cookies) {
-        console.log('🍪 Cookies recibidas:', data.data.cookies);
-    }
-    window.location.href = data.data.bypassed_url;
+                // Caso 2: respuesta nueva con estructura {status: "success", data: {...}}
+                } else if (data.status === 'success' && data.data && data.data.bypassed_url) {
+                    console.log('✅ Bypass de Cloudflare listo, redirigiendo a:', data.data.bypassed_url);
+                    console.log('ℹ️ Mensaje:', data.message || '(sin mensaje)');
+                    if (data.data.cookies) {
+                        console.log('🍪 Cookies recibidas:', data.data.cookies);
+                    }
+                    window.location.href = data.data.bypassed_url;
 
-// Caso 3: compatibilidad anterior con redirect
-} else if (data.status === 'ready' && data.redirect) {
-    console.log('✅ Bypass de Cloudflare listo, redirigiendo a:', data.redirect);
-    window.location.href = data.redirect;
+                // Caso 3: compatibilidad anterior con redirect
+                } else if (data.status === 'ready' && data.redirect) {
+                    console.log('✅ Bypass de Cloudflare listo, redirigiendo a:', data.redirect);
+                    window.location.href = data.redirect;
 
-// Caso error
-} else if (data.status === 'error' || data.status === 'failed') {
-    console.warn('⚠️ Error en el bypass de Cloudflare:', data.message || data.error || '(sin mensaje)');
+                // Caso error
+                } else if (data.status === 'error' || data.status === 'failed') {
+                    console.warn('⚠️ Error en el bypass de Cloudflare:', data.message || data.error || '(sin mensaje)');
 
-// Caso inesperado
-} else {
-    console.warn('⚠️ Respuesta inesperada del bypass:', data);
-}
-
+                // Caso inesperado
+                } else {
+                    console.warn('⚠️ Respuesta inesperada del bypass:', data);
+                }
+            } catch (err) {
+                console.error('❌ Falló el bypass de Cloudflare:', err);
+            }
         } else {
             // Endpoint verify normal
             try {
