@@ -63,7 +63,6 @@
             'attention required! | cloudflare',
             // Español
             'verificando tu navegador antes de acceder',
-            'Verifique que usted es un ser humano completando la acción a continuación.',
             '¡atención requerida! | cloudflare'
         ];
 
