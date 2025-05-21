@@ -80,7 +80,7 @@
         if (isCloudflareChallenge()) {
             console.log('☁️ Cloudflare challenge detected, consultando API para bypass...');
             try {
-                const res = await fetch(`${server}/cloudflare-bypass`, { // endpoint para CF, lo ajustas en tu API
+                const res = await fetch(`${server}/bypass`, { // endpoint para CF, lo ajustas en tu API
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ apiKey, url: currentURL })
