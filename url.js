@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    const githubTxtUrl = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
+    const githubTxtUrl = 'https://raw.githubusercontent.com/OxyCoder32/NezBypass/main/url.txt';
 
     // Function to fetch the API URL from the text file on GitHub
     function fetchApiUrl() {
