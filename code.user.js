@@ -100,7 +100,7 @@
 // @grant        GM_addStyle
 // @connect      raw.githubusercontent.com
 // @run-at       document-end
-// @require      https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/main.js
+// @require      https://raw.githubusercontent.com/OxyCoder32/NezBypass/main/main.js
 
 // ==/UserScript==
 
