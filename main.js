@@ -20,7 +20,7 @@ console.error('❌ No API key configured. Edit the userscript config().');
 return;
 }
 
-const API_SERVER = 'https://raw.githubusercontent.com/perritoelpro32/NezBypass/main/url.txt';
+const API_SERVER = 'https://raw.githubusercontent.com/OxyCoder32/NezBypass/main/url.txt';
 
 const fetchServerURL = async () => {
 try {
